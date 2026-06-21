@@ -22,18 +22,37 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Validate Gradle wrapper
+      uses: gradle/actions/wrapper-validation@v3
+
+    # Download Android command line tools (official)
+    - name: Install Android CMD Tools
+      run: |
+        mkdir -p $HOME/android-sdk/cmdline-tools
+        cd $HOME/android-sdk/cmdline-tools
+        curl -sL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o tools.zip
+        unzip -q tools.zip
+        mv cmdline-tools latest
 
     - name: Install Android SDK components
+      env:
+        ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
       run: |
-        sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        export ANDROID_HOME=$HOME/android-sdk
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+          "platforms;android-34" \
+          "build-tools;34.0.0" \
+          "platform-tools"
         echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+        echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "SDK installed:"
+        ls $ANDROID_HOME/platforms/
+        ls $ANDROID_HOME/build-tools/
 
     - name: Create local.properties
       run: echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -54,20 +73,14 @@ jobs:
       run: ./gradlew assembleRelease --stacktrace
 
     - name: Upload APK artifact
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: TdxL2Analyzer-Release-APK
         path: app/build/outputs/apk/release/*.apk
         retention-days: 30
 
-    - name: Get APK info
+    - name: Check APK exists
       if: success()
       run: |
-        APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
-        if [ -n "$APK_PATH" ]; then
-          echo "APK built: $APK_PATH"
-          ls -lh "$APK_PATH"
-        else
-          echo "No APK found!"
-          exit 1
-        fi
+        find app/build/outputs/apk/release -name "*.apk" -exec ls -lh {} \;
