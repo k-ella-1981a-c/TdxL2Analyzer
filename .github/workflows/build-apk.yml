@@ -1,10 +1,4 @@
 # GitHub Actions - 自动构建 Android APK
-# 使用方法：
-#   1. 将此项目上传到 GitHub 仓库
-#   2. 进入仓库 → Settings → Actions → General → 启用 Actions
-#   3. 进入 Actions 标签页 → 选择 "Build Android APK" → Run workflow
-#   4. 构建完成后在 Artifacts 中下载 APK
-
 name: Build Android APK
 
 on:
@@ -12,7 +6,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
@@ -32,18 +26,17 @@ jobs:
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
-      with:
-        api-level: 34
-        build-tools: '34.0.0'
-        ndk: ''
+
+    - name: Install Android SDK components
+      run: |
+        sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Create local.properties
-      run: |
-        echo "sdk.dir=$ANDROID_HOME" > local.properties
-        echo "Created local.properties"
+      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
     - name: Create release keystore
       run: |
@@ -55,9 +48,7 @@ jobs:
           -keyalg RSA \
           -keysize 2048 \
           -validity 10000 \
-          -dname "CN=TdxL2 Analyzer, OU=Release, O=TDX, L=Unknown, ST=Unknown, C=CN" \
-          2>/dev/null || echo "Keystore creation skipped (keytool not found)"
-        ls -la release.keystore 2>/dev/null || echo "No keystore found"
+          -dname "CN=TdxL2 Analyzer, OU=Release, O=TDX, L=Unknown, ST=Unknown, C=CN"
 
     - name: Build with Gradle
       run: ./gradlew assembleRelease --stacktrace
@@ -69,13 +60,14 @@ jobs:
         path: app/build/outputs/apk/release/*.apk
         retention-days: 30
 
-    - name: Get APK version info
+    - name: Get APK info
       if: success()
       run: |
         APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
         if [ -n "$APK_PATH" ]; then
-          echo "✅ APK 构建成功: $APK_PATH"
+          echo "APK built: $APK_PATH"
           ls -lh "$APK_PATH"
         else
-          echo "❌ 未找到 APK 文件"
+          echo "No APK found!"
+          exit 1
         fi
