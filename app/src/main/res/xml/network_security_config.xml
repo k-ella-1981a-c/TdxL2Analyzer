@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config>
+        <!-- 通达信行情服务器 -->
+        <domain includeSubdomains="true">tdx.com.cn</domain>
+        <domain includeSubdomains="true">hq.tdx.com.cn</domain>
+        <!-- 证书锁定（可选，取消注释以启用）-->
+        <!--
+        <pin-set>
+            <pin digest="SHA-256">此处填写证书SHA256指纹</pin>
+        </pin-set>
+        -->
+    </domain-config>
+    <!-- 允许明文流量（调试用，正式版应设为 false）-->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

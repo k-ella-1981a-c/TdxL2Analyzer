@@ -1,0 +1,36 @@
+# Gradle
+.gradle/
+**/build/
+
+# Local configuration
+local.properties
+*.iml
+.idea/
+
+# Android
+*.apk
+*.ap_
+*.dex
+*.class
+
+# Keystore
+*.keystore
+*.jks
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary
+*.tmp
+*.bak
+
+# HTML demo (separate)
+html_demo/
+
+# Python cache
+__pycache__/
+*.pyc

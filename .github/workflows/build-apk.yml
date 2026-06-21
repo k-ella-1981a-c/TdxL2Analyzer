@@ -1,0 +1,81 @@
+# GitHub Actions - 自动构建 Android APK
+# 使用方法：
+#   1. 将此项目上传到 GitHub 仓库
+#   2. 进入仓库 → Settings → Actions → General → 启用 Actions
+#   3. 进入 Actions 标签页 → 选择 "Build Android APK" → Run workflow
+#   4. 构建完成后在 Artifacts 中下载 APK
+
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 34
+        build-tools: '34.0.0'
+        ndk: ''
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Create local.properties
+      run: |
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+        echo "Created local.properties"
+
+    - name: Create release keystore
+      run: |
+        keytool -genkeypair \
+          -alias tdxL2 \
+          -keypass tdxL2@2026 \
+          -keystore release.keystore \
+          -storepass tdxL2@2026 \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -dname "CN=TdxL2 Analyzer, OU=Release, O=TDX, L=Unknown, ST=Unknown, C=CN" \
+          2>/dev/null || echo "Keystore creation skipped (keytool not found)"
+        ls -la release.keystore 2>/dev/null || echo "No keystore found"
+
+    - name: Build with Gradle
+      run: ./gradlew assembleRelease --stacktrace
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: TdxL2Analyzer-Release-APK
+        path: app/build/outputs/apk/release/*.apk
+        retention-days: 30
+
+    - name: Get APK version info
+      if: success()
+      run: |
+        APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+        if [ -n "$APK_PATH" ]; then
+          echo "✅ APK 构建成功: $APK_PATH"
+          ls -lh "$APK_PATH"
+        else
+          echo "❌ 未找到 APK 文件"
+        fi

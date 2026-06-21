@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#58a6ff</color>
+    <color name="primaryDark">#161b22</color>
+    <color name="accent">#bc8cff</color>
+    <color name="bg_primary">#0d1117</color>
+    <color name="bg_card">#161b22</color>
+    <color name="bg_input">#1c2128</color>
+    <color name="text_primary">#e6edf3</color>
+    <color name="text_secondary">#8b949e</color>
+    <color name="buy_green">#3fb950</color>
+    <color name="sell_red">#f85149</color>
+    <color name="warning_yellow">#d29922</color>
+</resources>

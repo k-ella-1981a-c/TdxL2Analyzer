@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">L2 逐笔分析</string>
+    <string name="start">开始分析</string>
+    <string name="stop">停止</string>
+    <string name="hint_stock_code">输入6位股票代码</string>
+    <string name="error_invalid_code">请输入有效的6位股票代码</string>
+    <string name="connecting">L2连接中...</string>
+    <string name="connected">L2已连接</string>
+    <string name="disconnected">L2已断开</string>
+</resources>
